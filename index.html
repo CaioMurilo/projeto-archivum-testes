@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>Archivum</title>
+    <style>
+        body { font-family: Arial, sans-serif; background-color: #f4f4f9; color: #333; padding: 20px; }
+        .container { max-width: 600px; margin: auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
+        input, button { padding: 10px; margin: 10px 0; width: 100%; box-sizing: border-box; }
+        button { background-color: #0056b3; color: white; border: none; cursor: pointer; border-radius: 4px; }
+        button:hover { background-color: #004494; }
+        li { margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #eee; padding-bottom: 10px; }
+        .acoes { display: flex; gap: 10px; }
+        .btn-del { background-color: #dc3545; width: auto; padding: 5px 10px; margin: 0; }
+        .btn-del:hover { background-color: #c82333; }
+        .btn-edit { background-color: #ffc107; color: black; width: auto; padding: 5px 10px; margin: 0; }
+        .btn-edit:hover { background-color: #e0a800; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Sistema Archivum</h1>
+        
+        <div id="loginSection">
+            <h2>Login</h2>
+            <input type="text" id="usuario" placeholder="Usuário (admin)">
+            <input type="password" id="senha" placeholder="Senha (123)">
+            <button onclick="fazerLogin()">Entrar</button>
+            <p id="msgLogin" style="color: red;"></p>
+        </div>
+
+        <div id="appSection" style="display: none;">
+            <h2>Acervo de Livros</h2>
+            <input type="text" id="titulo" placeholder="Título da Obra">
+            <input type="text" id="autor" placeholder="Autor">
+            <button onclick="adicionarLivro()">Adicionar ao Acervo</button>
+            
+            <h3>Livros Registrados:</h3>
+            <ul id="listaLivros"></ul>
+        </div>
+    </div>
+
+    <script>
+        async function fazerLogin() {
+            const usuario = document.getElementById('usuario').value;
+            const senha = document.getElementById('senha').value;
+            const res = await fetch('/api/login', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({usuario, senha})
+            });
+            if(res.ok) {
+                document.getElementById('loginSection').style.display = 'none';
+                document.getElementById('appSection').style.display = 'block';
+                carregarLivros();
+            } else {
+                document.getElementById('msgLogin').innerText = "Credenciais inválidas!";
+            }
+        }
+
+        async function carregarLivros() {
+            const res = await fetch('/api/livros');
+            const livros = await res.json();
+            const lista = document.getElementById('listaLivros');
+            lista.innerHTML = '';
+            livros.forEach(l => {
+                lista.innerHTML += `
+                <li>
+                    <span><strong>${l.titulo}</strong> - ${l.autor}</span>
+                    <div class="acoes">
+                        <button class="btn-edit" onclick="editarLivro(${l.id}, '${l.titulo}', '${l.autor}')">Editar</button>
+                        <button class="btn-del" onclick="deletarLivro(${l.id})">Excluir</button>
+                    </div>
+                </li>`;
+            });
+        }
+
+        async function adicionarLivro() {
+            const titulo = document.getElementById('titulo').value;
+            const autor = document.getElementById('autor').value;
+            if(!titulo || !autor) return alert("Preencha todos os campos!");
+            
+            await fetch('/api/livros', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({titulo, autor})
+            });
+            document.getElementById('titulo').value = '';
+            document.getElementById('autor').value = '';
+            carregarLivros();
+        }
+
+        async function editarLivro(id, tituloAtual, autorAtual) {
+            const novoTitulo = prompt("Editando título:", tituloAtual);
+            const novoAutor = prompt("Editando autor:", autorAtual);
+            
+            if (novoTitulo !== null && novoAutor !== null && novoTitulo.trim() !== '' && novoAutor.trim() !== '') {
+                await fetch(`/api/livros/${id}`, {
+                    method: 'PUT',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({titulo: novoTitulo, autor: novoAutor})
+                });
+                carregarLivros();
+            }
+        }
+
+        async function deletarLivro(id) {
+            if(confirm("Tem certeza que deseja excluir esta obra?")) {
+                await fetch(`/api/livros/${id}`, { method: 'DELETE' });
+                carregarLivros();
+            }
+        }
+    </script>
+</body>
+</html>

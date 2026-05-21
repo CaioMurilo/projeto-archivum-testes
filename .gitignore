@@ -1,0 +1,13 @@
+# Ignorar arquivos temporários do Python e do Pytest
+__pycache__/
+.pytest_cache/
+*.pyc
+
+# Ignorar o banco de dados (cada pessoa cria o seu ao rodar o projeto)
+archivum.db
+test_archivum.db
+
+# Ignorar ambientes virtuais (caso se tenha criado umm)
+venv/
+.venv/
+v/

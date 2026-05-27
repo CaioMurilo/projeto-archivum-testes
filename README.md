@@ -13,3 +13,15 @@ Sistema web desenvolvido para a disciplina de Teste de Software. O foco principa
    ```bash
    pip install -r requirements.txt
    playwright install
+
+Inicie o servidor:
+
+   python app.py
+
+Acesse no navegador: http://localhost:3000 (Usuário: admin / Senha: 123).
+
+**🧪 Como rodar os testes**
+
+Testes de API (Backend): python -m pytest tests/test_api.py -v
+
+Testes E2E (Interface): Com o servidor ligado, rode python -m pytest tests/test_e2e.py --headed
